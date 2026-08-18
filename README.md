@@ -50,3 +50,5 @@ Serverless GCP lakehouse for wearable health data, designed as a polished portfo
 ![Screenshot 4](docs/screenshots/shot-4.png)
 ![Screenshot 5](docs/screenshots/shot-5.png)
 ![Screenshot 6](docs/screenshots/shot-6.png)
+![Screenshot 7](docs/screenshots/shot-7.png)
+![Screenshot 8](docs/screenshots/shot-8.png)
