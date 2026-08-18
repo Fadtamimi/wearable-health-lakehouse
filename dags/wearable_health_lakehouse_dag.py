@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import os
 
 from airflow import DAG
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.providers.google.cloud.operators.dataproc import DataprocCreateBatchOperator
 
 
@@ -12,6 +13,8 @@ SERVICE_ACCOUNT = os.getenv(
     "WELLARTH_SERVICE_ACCOUNT",
     "839052457164-compute@developer.gserviceaccount.com",
 )
+BQ_DATASET = os.getenv("WELLARTH_BQ_DATASET", "wearable_health")
+BQ_TABLE = os.getenv("WELLARTH_BQ_TABLE", "wearable_gold")
 
 DEFAULT_ARGS = {
     "owner": "copilot",
@@ -37,6 +40,21 @@ def build_batch(main_script: str) -> dict:
         "environment_config": {
             "execution_config": {"service_account": SERVICE_ACCOUNT}
         },
+    }
+
+
+def build_bigquery_load_job() -> dict:
+    return {
+        "load": {
+            "sourceUris": [f"gs://{BUCKET_PREFIX}/gold/*.parquet"],
+            "destinationTable": {
+                "projectId": PROJECT_ID,
+                "datasetId": BQ_DATASET,
+                "tableId": BQ_TABLE,
+            },
+            "sourceFormat": "PARQUET",
+            "writeDisposition": "WRITE_TRUNCATE",
+        }
     }
 
 
@@ -66,4 +84,10 @@ with DAG(
         batch_id="silver-to-gold-{{ ts_nodash | lower }}",
     )
 
-    bronze_to_silver >> silver_to_gold
+    gold_to_bigquery = BigQueryInsertJobOperator(
+        task_id="gold_to_bigquery",
+        configuration=build_bigquery_load_job(),
+        location=REGION,
+    )
+
+    bronze_to_silver >> silver_to_gold >> gold_to_bigquery

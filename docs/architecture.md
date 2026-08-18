@@ -24,4 +24,4 @@ Cloud Storage gold / BigQuery
 - Keep credentials in Secret Manager.
 - Use least-privilege IAM for the Dataproc service account.
 - Prefer managed services only; no self-managed clusters.
-
+- Load the gold layer into BigQuery with an Airflow-managed load job.
